@@ -9,7 +9,7 @@ class Player:
     name = ""
 
     # The player's location.
-    location = config.location_downtown
+    location = config.location_id_downtown
 
     # The player's amount of slimes.
     slimes = 0

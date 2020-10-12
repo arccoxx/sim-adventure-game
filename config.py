@@ -1,3 +1,6 @@
+# Import other parts of our code.
+from map import Location
+
 game_name = "Untitled Text Adventure Game"
 game_version = "0.2"
 
@@ -7,10 +10,79 @@ command_debug = 'debug'
 command_exit = 'exit'
 command_mine = 'mine'
 command_data = 'data'
-
-# Locations in the game.
-location_downtown = "Downtown"
-location_mines = "The Mines"
+command_move = 'move'
+command_look = 'look'
 
 # Generic responses.
 text_invalid_location = "You must be in {location_name} to use this command."
+
+# Generic inputs in the affirmative.
+accept_inputs = [
+    "yes",
+    "okay",
+    "accept",
+]
+
+# Generic inputs in the negative.
+decline_inputs = [
+    "no",
+    "nah",
+    "decline"
+]
+
+travel_time_default = 5
+
+# Variables for the locations in the game.
+location_id_downtown = "downtown"
+location_id_suburbs = "suburbs"
+location_id_the_mines = "themines"
+
+# A list of every location in the game as Location objects.
+locations_list = [
+    Location(
+        id = location_id_downtown,
+        alias = [
+            "dt",
+        ],
+        name = "Downtown",
+        description = "This is Downtown.",
+        neighbors = {
+            location_id_suburbs: travel_time_default,
+        },
+    ),
+        Location(
+        id = location_id_suburbs,
+        alias = [
+            "s",
+        ],
+        name = "Suburbs",
+        description = "This is Suburbs.",
+        neighbors = {
+            location_id_downtown: travel_time_default,
+            location_id_the_mines: travel_time_default,
+        },
+    ),
+    Location(
+        id = location_id_the_mines,
+        alias = [
+            "mines",
+            "m"
+        ],
+        name = "the Mines",
+        description = "This is the Mines.",
+        neighbors = {
+            location_id_suburbs: travel_time_default,
+        },
+    ),
+]
+
+# A dictonary mapping every location identifier to their corresponding locations as Location objects.
+id_to_location = {}
+
+for location in locations_list:
+    # Populate the dictonary.
+    id_to_location[location.id] = location
+    
+    # Connect the aliases of each location to their corresponding Location objects too.
+    for alias in location.alias:
+        id_to_location[alias] = location
