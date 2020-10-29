@@ -1,7 +1,44 @@
-[
-  {
+{
+  "player": {
     "name": "Anthony",
-    "location": "suburbs",
-    "slimes": 463
+    "location": "themines",
+    "slimes": 6899,
+    "hunger": 80,
+    "scene": null
+  },
+  "quest_progress": {
+    "Introduction": 2
+  },
+  "items": {
+    "1": {
+      "id": "apple",
+      "name": "Red Apple",
+      "description": "Juicy and delicious..."
+    },
+    "2": {
+      "id": "apple",
+      "name": "Red Apple",
+      "description": "Juicy and delicious..."
+    },
+    "3": {
+      "id": "apple",
+      "name": "Red Apple",
+      "description": "Juicy and delicious..."
+    },
+    "4": {
+      "id": "apple",
+      "name": "Red Apple",
+      "description": "Juicy and delicious..."
+    },
+    "5": {
+      "id": "apple",
+      "name": "Red Apple",
+      "description": "Juicy and delicious..."
+    },
+    "6": {
+      "id": "apple",
+      "name": "Red Apple",
+      "description": "Juicy and delicious..."
+    }
   }
-]
+}

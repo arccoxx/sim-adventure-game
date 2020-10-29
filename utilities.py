@@ -1,5 +1,6 @@
 # Import external libraries.
 import re
+import json
 
 # Import other parts of our code.
 import config
@@ -10,15 +11,16 @@ import config
 command_map = {
     config.command_help: commands.help,
     config.command_debug: commands.debug,
-    config.command_exit: commands.exit,
     config.command_mine: commands.mine,
     config.command_data: commands.data,
-    config.command_move: commands.move,
     config.command_look: commands.look,
+    config.command_move: commands.move,
+    config.command_create_item: commands.create_item,
+    config.command_eat: commands.eat,
 }
 
 # When we input a message, check to see if it's a valid command and then execute it if it is.
-async def on_message(message):
+def parse_message(message):
     # Tokenize the message. The command should be the first word.
     tokens = message.split(' ')
 
@@ -30,8 +32,8 @@ async def on_message(message):
 
     # Create command object for your command.
     command_object = commands.Command(
-        tokens = tokens,
-        message = message,
+        tokens=tokens,
+        message=message,
     )
 
     # Check the main command map for the requested command.
@@ -40,26 +42,13 @@ async def on_message(message):
 
     if command_found is not None:
         # Execute found command.
-        return await command_found(command_object)
+        return command_found(command_object)
 
-    else: # Could not find the inputted command.
+    else:  # Could not find the inputted command.
         response = "That is not a valid command."
-        await send_message(format_message(response))
+        return response
 
-# Format message.
-def format_message(message, new_prompt = True):
-    return "\n{}\n>".format(message)
-
-# Convert the response spit out by commands into an input or prints it if no new prompt is required.
-async def send_message(response, new_prompt = True):
-    if new_prompt is True:
-        new_command = input(response)
-        await on_message(new_command)
-
-    else:
-        print(response)
-
-#Turn an array of tokens into a single word (no spaces or punctuation) with all lowercase letters.
+# Turn an array of tokens into a single word (no spaces or punctuation) with all lowercase letters.
 def flattenTokens(tokens):
     flattener = re.compile("[ '\"!@#$%^&*().,/?{}\[\];:]")
 
@@ -68,12 +57,58 @@ def flattenTokens(tokens):
     if type(tokens) == list:
         for token in tokens:
             target_name += flattener.sub("", token.lower())
-    
+
     else:
         target_name = flattener.sub("", tokens.lower())
 
     return target_name
 
+
 # Map of user IDs to their course ID.
 moves_active = {}
 
+class Save():
+    data = None
+
+    def __init__(self):
+        try:  # Open the save file.
+            with open('save.json', 'r') as save_file:
+                save_data = json.load(save_file)
+                save_file.close()
+                self.data = save_data
+        except:  # If there isn't a save file in the directory, create one.
+            with open('save.json', 'w') as save_file:
+                # Create the initial data structure of the save file and create in default values for every key.
+                save_data = {
+                    "player": {
+                        "name": None,
+                        "location": config.location_id_downtown,
+                        "slimes": 0,
+                        "hunger": 0,
+                        "scene": config.scene_id_newgame,
+                    },
+                    "quest_progress": {
+                        config.scene_id_newgame: 0
+                    },
+                    "items": {},
+                }
+
+                # Convert the new dictionary into a JSON object and save it in a new save file.
+                json.dump(save_data, save_file, indent=2)
+
+                # Safely close the file.
+                save_file.close()
+
+                with open('save.json', 'r') as save_file:
+                    save_data = json.load(save_file)
+                    save_file.close()
+                    self.data = save_data
+
+    def persist(self):
+        # Commit the new changes to the save file.
+        with open('save.json', 'w') as save_file:
+            # Convert the dictionary into a JSON object and save it in a save file.
+            json.dump(self.data, save_file, indent=2)
+
+            # Safely close the file.
+            save_file.close()
