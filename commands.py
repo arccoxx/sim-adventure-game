@@ -1,7 +1,6 @@
 # Import external libraries.
 import random
 import time
-import asyncio
 import pygame
 
 # Import other parts of our code.
@@ -210,18 +209,78 @@ def move(cmd):
     #                 else:
     #                     await utilities.send_message("\n" + "You continue walking to {target_location}".format(target_location=target_location.name), new_prompt=False)
 
-# Create an item.
-def create_item(cmd):
-    desired_item = config.item_map['apple']
-    item.create_item(id=desired_item.id, name=desired_item.name, description=desired_item.description)
+# Order an item.
+def order(cmd):
+    # Whatever the player inputs after the move command itself.
+    target = utilities.flattenTokens(cmd.tokens[1:])
 
-    response = "You have deleted a " + desired_item.name + "! " + desired_item.description
-    return response
+    # If the player doesn't input anything after the order command.
+    if target == None or len(target) == 0:
+        response = "What do you want to order?"
+        return response
+
+    # Match the desired order to an Item object using the item_map array in the config file, then store it here.
+    desired_order = config.item_map.get(target)
+
+    # If the desired order identifier can't be matched to an Item object in the item_map array.
+    if desired_order == None:
+        response = "That is not a valid item."
+        return response
+    else:
+        # Check to see if the player can buy the found item.
+        if desired_order.value is not None and desired_order.vendor is not None:
+            # Get the player's data.
+            player_data = player.Player()
+
+            # If the player is in the location of the vendor selling the item.
+            if desired_order.vendor != player_data.location:
+                response = "You cannot buy that item here."
+                return response
+
+            # If the player does not have enough slime to buy the desired order.
+            if desired_order.value > player_data.slimes:
+                response = "You do not have enough slime to order this item! A {order} costs {price}, and you only have {slimes}!".format(order = desired_order.name, price = desired_order.value, slimes = player_data.slimes) 
+                return response
+            else:
+                # Spend the slime necessary to buy the item.
+                player_data.slimes -= desired_order.value
+                player_data.persist()
+                
+                # Actually create the item.
+                item.create_item(desired_order)
+
+                response = "You order a {item}!".format(item = desired_order.name, description = desired_order.description)
+                return response
 
 # Eat something.
 def eat(cmd):
-    # Get the player's data.
-    player_data = player.Player()
-    player_data.hunger = 0
-    player_data.persist()
-    return "You ate something! Now you can mine slime again!"
+    # Whatever the player inputs after the move command itself.
+    target = utilities.flattenTokens(cmd.tokens[1:])
+
+    # If the player doesn't input anything after the eat command.
+    if target == None or len(target) == 0:
+        response = "What do you want to eat?"
+        return response
+
+    # Search through the player's inventory for the sought item.
+    sought_item = item.search_for_item(target)
+
+    # If we don't find the item in the player's inventory.
+    if sought_item == None:
+        response = "You don't have one of those."
+        return response
+    
+    # If the player can eat the item.
+    if sought_item.satiation == None:
+        response = "You can't eat that!"
+        return response
+    else:
+        # Get the player's data.
+        player_data = player.Player()
+        player_data.hunger -= sought_item.satiation 
+        player_data.persist()
+
+        # Eat the item.
+        item.delete_item(target)
+        response = "You chomp into the {item}! {description}".format(item = sought_item.name, description = sought_item.description)
+        return response

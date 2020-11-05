@@ -13,7 +13,7 @@ command_mine = 'mine'
 command_data = 'data'
 command_move = 'move'
 command_look = 'look'
-command_create_item = 'create'
+command_order = 'order'
 command_eat = 'eat'
 
 # Variables for scenes.
@@ -93,21 +93,21 @@ for location in location_list:
 	for alias in location.alias:
 		id_to_location[alias] = location
 
+# Variables for the items in the game.
+type_general = "general"
+type_food = "food"
+
+
+# A list of every item in the game as Item objects.
 item_list = [
 	Item(
-		id = "compass",
-		name = "Compass",
-		description = "This is a compass!",
-	),
-	Item(
-		id = "diamond",
-		name = "Diamond",
-		description = "What a beautiful diamond!",
-	),
-	Item(
 		id = "apple",
+		type = type_food,
 		name = "Red Apple",
 		description = "Juicy and delicious...",
+		value = 500,
+		vendor = location_id_suburbs,
+		satiation = 10,
 	),
 ]
 

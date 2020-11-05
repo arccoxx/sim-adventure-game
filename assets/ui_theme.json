@@ -3,21 +3,21 @@
   {
     "colours":
     {
-      "normal_text": "#000000FF",
+      "normal_text": "#ffffff",
       "dark_bg": "#00000000"
     },
     "font":
     {
-        "name": "gabriola",
+        "name": "jost",
         "size": "18",
         "bold": "0",
         "italic": "0",
-        "regular_path": "data/Gabriola.ttf"
+        "regular_path": "assets/font.ttf"
     },
     "misc":
     {
       "border_width": "0",
-      "padding": "10,10",
+      "padding": "5,5",
       "link_normal_underline": "0",
       "link_hover_underline": "1"
     }
@@ -26,16 +26,16 @@
   {
     "colours":
     {
-      "normal_text": "#AA1414FF",
+      "normal_text": "#ffffff",
       "dark_bg": "#00000000"
     },
     "font":
     {
-        "name": "gabriola",
+        "name": "jost",
         "size": "18",
         "bold": "0",
         "italic": "0",
-        "regular_path": "data/Gabriola.ttf"
+        "regular_path": "assets/font.ttf"
     },
     "misc":
     {
@@ -46,15 +46,15 @@
   "#carat":
   {
     "colours": {
-      "normal_text": "#AA1414FF",
+      "normal_text": "#ffffff",
       "dark_bg": "#00000000"
     },
     "font": {
-      "name": "gabriola",
+      "name": "jost",
       "size": "18",
       "bold": "0",
       "italic": "0",
-      "regular_path": "data/Gabriola.ttf"
+      "regular_path": "assets/font.ttf"
     }
   }
 }

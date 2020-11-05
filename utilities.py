@@ -15,7 +15,7 @@ command_map = {
     config.command_data: commands.data,
     config.command_look: commands.look,
     config.command_move: commands.move,
-    config.command_create_item: commands.create_item,
+    config.command_order: commands.order,
     config.command_eat: commands.eat,
 }
 
