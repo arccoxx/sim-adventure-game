@@ -22,6 +22,8 @@ class Player:
     # Scenes are scripted sequences the player enter into for key moments in the story where normal commands are disabled.
     scene = None
 
+    debt = config.initial_debt
+
     # Create the player object.
     def __init__(self):
         with open('save.json', 'r') as save_file:
@@ -37,6 +39,7 @@ class Player:
             self.slimes = player_data['slimes']
             self.hunger = player_data['hunger']
             self.scene = player_data['scene']
+            self.debt = player_data['debt']
 
             # Safely close the file.
             save_file.close()
@@ -57,6 +60,7 @@ class Player:
             save_data['player']['slimes'] = self.slimes
             save_data['player']['hunger'] = self.hunger
             save_data['player']['scene'] = self.scene
+            save_data['player']['debt'] = self.debt
 
             # Convert the dictionary into a JSON object and save it in a save file.
             json.dump(save_data, save_file, indent=2)

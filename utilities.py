@@ -1,6 +1,8 @@
 # Import external libraries.
 import re
 import json
+import pygame
+import pygame_gui
 
 # Import other parts of our code.
 import config
@@ -17,10 +19,13 @@ command_map = {
     config.command_move: commands.move,
     config.command_order: commands.order,
     config.command_eat: commands.eat,
+    config.command_deposit: commands.deposit,
+    config.command_menu: commands.menu,
+    config.command_inventory: commands.inventory,
 }
 
 # When we input a message, check to see if it's a valid command and then execute it if it is.
-def parse_message(message):
+def parse_message(message, output = None):
     # Tokenize the message. The command should be the first word.
     tokens = message.split(' ')
 
@@ -86,6 +91,7 @@ class Save():
                         "slimes": 0,
                         "hunger": 0,
                         "scene": config.scene_id_newgame,
+                        "debt": config.initial_debt,
                     },
                     "quest_progress": {
                         config.scene_id_newgame: 0
@@ -112,3 +118,39 @@ class Save():
 
             # Safely close the file.
             save_file.close()
+
+def format_nice_list(names = [], conjunction = "and"):
+	list = len(names)
+
+	if list == 0:
+		return ''
+
+	if list == 1:
+		return names[0]
+	
+	return ', '.join(names[0:-1]) + '{comma} {conj} '.format(comma = (',' if list > 2 else ''), conj = conjunction) + names[-1]
+
+pygame.init()
+
+screen_width = 896
+screen_height = 504
+
+screen = pygame.display.set_mode((screen_width, screen_height))
+
+background_colour = pygame.Color("#808080")
+
+ui_manager = pygame_gui.UIManager((screen_width, screen_height), "assets/ui_theme.json")
+ui_manager.add_font_paths('jost', "assets/font.ttf")
+ui_manager.preload_fonts([{'name': 'jost', 'point_size': 18, 'style': 'bold'},
+                          {'name': 'jost', 'point_size': 18, 'style': 'italic'}])
+
+def generate_command_line():
+    player_text_entry = pygame_gui.elements.UITextEntryLine(pygame.Rect(
+        (75, 440), (790, 50)), manager=ui_manager, object_id="#player_input")
+    pygame_gui.elements.UILabel(pygame.Rect(
+        (50, 428), (25, 50)), ">", manager=ui_manager, object_id="#carat")
+    ui_manager.select_focus_element(player_text_entry)
+
+
+def generate_output(response):
+    return pygame_gui.elements.UITextBox(response, pygame.Rect((25, 25), (845, 380)), manager=ui_manager, object_id="#scene_text")

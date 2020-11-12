@@ -2,6 +2,8 @@
 import random
 import time
 import pygame
+import moviepy
+from moviepy.editor import *
 
 # Import other parts of our code.
 import utilities
@@ -9,12 +11,11 @@ import player
 import config
 import map
 import item
+from item import get_inventory
 
 move_counter = 0
 
 # Class to send general data about an interaction to a command.
-
-
 class Command:
     command = ""
     tokens = []
@@ -50,8 +51,26 @@ def mine(cmd):
     player_data = player.Player()
 
     # Checks to see if the player is in the right location.
-    if player_data.location == config.location_id_the_mines:
+    if player_data.location == config.location_id_mines:
+        has_pickaxe = item.search_for_item(sought_item = "pickaxe")
+
+        if has_pickaxe is None:
+            desired_order = config.item_map.get("pickaxe")
+            item.create_item(desired_order)
+
+            response = "But, you have no pickaxe! Luckily, there's a spare on the floor. You pick it up, and can now mine."
+            return response
+
         if player_data.hunger < 100:
+            has_pickaxe.durability -= 1
+
+            pickaxe_broken = False
+            if has_pickaxe.durability <= 0:
+                pickaxe_broken = True
+                item.delete_item(has_pickaxe.id)
+            else:
+                item.edit_item(sought_item=has_pickaxe.id, property="durability", new_value=has_pickaxe.durability)
+
             # Select a random number from 1 to 100 to provide the user with.
             mine_yield = random.randint(1, 100)
 
@@ -63,6 +82,9 @@ def mine(cmd):
             response = "You mined {mine_yield} slime!".format(
                 mine_yield=mine_yield)
             
+            if pickaxe_broken:
+                response += "<br>But your pickaxe broke!"
+            
             mine_sound = pygame.mixer.Sound("assets/mine.wav")
             pygame.mixer.Sound.play(mine_sound)
         else:
@@ -70,7 +92,7 @@ def mine(cmd):
 
     else:
         required_location = config.id_to_location.get(
-            config.location_id_the_mines)
+            config.location_id_mines)
         response = config.text_invalid_location.format(
             location_name=required_location.name)
 
@@ -114,100 +136,71 @@ def look(cmd):
 
     return response
 
-#Move around the map.
+# Move around the world.
 def move(cmd):
-    # Temporarily disable move command.
-    response = "This command is temporarily disabled! To change your location, open up your save.json in any text editor and change your 'location' to your desired destination. Hit save, then use the look command to confirm you've moved."
-    return response
-    
-    # # Whatever the player inputs after the move command itself.
-    # target = utilities.flattenTokens(cmd.tokens[1:])
+    # Define this variable as the first token the player input after the command itself.
+    target = utilities.flattenTokens(cmd.tokens[1:])
 
-    # # If the player doesn't input anything after the move command.
-    # if target == None or len(target) == 0:
-    #     response = "Where do you want to go to?"
-    #     return response
+    # If the player didn't input anything after the command.
+    if target == None or len(target) == 0:
+        response = "Where do you want to go to?"
+        return response
 
-    # # Get the player's data.
-    # player_data = player.Player()
+    # Get the player's data.
+    player_data = player.Player()
 
-    # # Match the current location identifier found in the player's data to a Location object using the id_to_location array in the config file, then store it here.
-    # current_location = config.id_to_location.get(player_data.location)
-    # # Do the same thing for the target location.
-    # target_location = config.id_to_location.get(target)
+    # Match the current location identifier found in the player's data to a Location object using the id_to_location array in the config file, then store it here.
+    current_location = config.id_to_location.get(player_data.location)
+    # Do the same thing for the "target" variable, which we will assume is a location.
+    target_location = config.id_to_location.get(target)
 
-    # # If the target location identifier can't be matched to a Location object in the id_to_location array.
-    # if target_location == None:
-    #     response = "That is not a valid location."
-    #     return response
+    # If the target location identifier can't be matched to a Location object in the id_to_location array.
+    if target_location == None:
+        response = "That is not a valid location."
+        return response
 
-    # # If you are already in your target location.
-    # if target_location.id == player_data.location:
-    #     response = "You are already there."
-    #     return response
+    # If you are already in your target location.
+    if target_location.id == player_data.location:
+        response = "You are already there."
+        return response
 
-    # # If your location has no neighbors, or if your target location has no neighbors.
-    # if len(current_location.neighbors.keys()) == 0 or len(target_location.neighbors.keys()) == 0:
-    #     response = "You don't know how to get there."
-    #     return response
+    # If your current location has no neighbors, or if your target location has no neighbors, or if your target location is not a neighborhood of your current location.
+    if len(current_location.neighbors.keys()) == 0 or len(target_location.neighbors.keys()) == 0 or target_location.id not in current_location.neighbors.keys():
+        response = "You don't know how to get there from here."
+        return response
 
-    # else:
-    #     # Plot a course towards your target location.
-    #     path = map.path_to(location_start=current_location.id,
-    #                        location_end=target_location.id, player_data=player_data)
+    else:
+        # Change the player's current location to their target location.
+        player_data.location = target_location.id
+        player_data.persist()
 
-    #     # Display how long it will take to reach the target location, in seconds.
-    #     response_move_eta = "It's about {seconds} seconds away.".format(
-    #         seconds=path.cost % 60)
+        response = "You enter {current_location}.".format(current_location=target_location.name)
+        return response
 
-    #     # Give feedback to the player.
-    #     await utilities.send_message("\n" + "You begin walking to {target_location}.".format(target_location=target_location.name) + " " + response_move_eta, new_prompt=False)
+# Order an item.
+def menu(cmd):
+    player_data = player.Player()
 
-    #     # List all of the steps on the path to the target location.
-    #     step_list = []
-    #     for step in path.steps:
-    #         step_list.append(step.name)
+    current_location = config.id_to_location.get(player_data.location)
 
-    #     # Move to the target location.
-    #     for move in range(1, len(path.steps)):
-    #         # Define the current step.
-    #         step = path.steps[move]
+    list_of_items_for_sale = []
 
-    #         # Sleep for the travel time inbetween the player's current location and their next location.
-    #         travel_time = current_location.neighbors.get(step.id)
-    #         await asyncio.sleep(travel_time)
+    for item in config.item_list:
+        if item.vendor == current_location.id:
+            item_listing = "<b>{}</b>: {} slimes<br>".format(item.name, item.value)
+            list_of_items_for_sale.append(item_listing)
+        else:
+            pass
+        
+    if len(list_of_items_for_sale) == 0:
+        response = "There are no items for sale here."
+        return response
+    else:
+        nice_list_of_items_for_sale = utilities.format_nice_list(list_of_items_for_sale)
 
-    #         # Define the current location as the previously upcoming location.
-    #         current_location = step
+        response = "There are the following items for sale:<br>{}".format(nice_list_of_items_for_sale)
+        return response
 
-    #         # Get the player's data, again, just in case anything changed.
-    #         player_data = player.Player()
-
-    #         # If the player is in a new location.
-    #         if player_data.location != current_location.id:
-    #             # Define the player's current location as their new location.
-    #             player_data.location = current_location.id
-    #             player_data.persist()
-
-    #             # If the player has entered their target location.
-    #             if player_data.location == target_location.id:
-    #                 await utilities.send_message(utilities.format_message("You enter {current_location}.".format(current_location=current_location.name)))
-    #                 break
-
-    #             # If the player has entered an area on their way to their target location.
-    #             else:
-    #                 # Prompt the user if they would like to stop walking to their target location and explore their current location. Then, flatten the input.
-    #                 prompt_stop = input(utilities.format_message("You enter {current_location} on your way to {target_location}. Do you want to stop walking to {target_location} and explore here?".format(
-    #                     current_location=current_location.name, target_location=target_location.name)))
-
-    #                 # If they accept the prompt to stop walking, break the loop.
-    #                 if utilities.flattenTokens(prompt_stop) in config.accept_inputs:
-    #                     await utilities.send_message(utilities.format_message("You stop in {current_location}.".format(current_location=current_location.name)))
-    #                     break
-
-    #                 # If they decide to keep walking, continue the loop.
-    #                 else:
-    #                     await utilities.send_message("\n" + "You continue walking to {target_location}".format(target_location=target_location.name), new_prompt=False)
 
 # Order an item.
 def order(cmd):
@@ -253,6 +246,21 @@ def order(cmd):
                 return response
 
 # Eat something.
+def inventory(cmd):
+    inventory = get_inventory()
+
+    if inventory == None or len(inventory) == 0:
+        response = "You aren't holding any items."
+        return response
+
+    response = "You are holding the following items:<br>"
+
+    for item in inventory:
+        response += "{}<br>".format(inventory[item]['name'])
+    
+    return response
+
+# Eat something.
 def eat(cmd):
     # Whatever the player inputs after the move command itself.
     target = utilities.flattenTokens(cmd.tokens[1:])
@@ -283,4 +291,44 @@ def eat(cmd):
         # Eat the item.
         item.delete_item(target)
         response = "You chomp into the {item}! {description}".format(item = sought_item.name, description = sought_item.description)
+        return response
+
+# Deposit some slime into your loan shark's bank account.
+def deposit(cmd):
+    # Get the player's data.
+    player_data = player.Player()
+
+    if player_data.location != config.location_id_loan_agency:
+        required_location = config.id_to_location.get(config.location_id_loan_agency)
+
+        response = config.text_invalid_location.format(location_name=required_location.name)
+        return response
+    
+    # Define this variable as the first token the player input after the command itself.
+    amount = int(utilities.flattenTokens(cmd.tokens[1:]))
+
+    # If the player didn't input anything after the command.
+    if amount == None or amount == 0:
+        response = "How much slime do you want to deposit?"
+        return response
+
+    # Get the player's data.
+    player_data = player.Player()
+
+    # If the player tries to deposit more slimes than they have.
+    if amount > player_data.slimes:
+        response = "You can't deposit that much slime, you only have {:,}.".format(player_data.slimes)
+        return response
+
+    else:
+        # Deposit the slime.
+        player_data.slimes -= amount
+        player_data.debt -= amount
+        player_data.persist()
+
+        response = "You dump {:,} slime into the ATM.".format(amount)
+
+        if player_data.debt <= 0:
+            clip = VideoFileClip(filename = 'assets/video.mp4', target_resolution = (504, 896))
+            clip.preview()
         return response

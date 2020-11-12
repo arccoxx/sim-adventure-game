@@ -15,6 +15,12 @@ command_move = 'move'
 command_look = 'look'
 command_order = 'order'
 command_eat = 'eat'
+command_deposit = 'deposit'
+command_menu = 'menu'
+command_inventory = 'inventory'
+
+# Variables for the player's debt.
+initial_debt = 20300000000000
 
 # Variables for scenes.
 scene_id_newgame = "Introduction"
@@ -40,8 +46,18 @@ travel_time_default = 5
 
 # Variables for the locations in the game.
 location_id_downtown = "downtown"
-location_id_suburbs = "suburbs"
-location_id_the_mines = "themines"
+location_id_uptown = "uptown"
+location_id_south_end = "southend"
+location_id_waterfront = "waterfront"
+location_id_riverside = "riverside"
+location_id_financial_district = "financialdistrict"
+location_id_outskirts = "outskirts"
+
+location_id_mines = "mines"
+location_id_loan_agency = "loanagency"
+location_id_casino = "casino"
+location_id_grocer = "grocer"
+location_id_soup_kitchen = "soupkitchen"
 
 # A list of every location in the game as Location objects.
 location_list = [
@@ -53,23 +69,89 @@ location_list = [
 		name="Downtown",
 		description="This is Downtown.",
 		neighbors={
-			location_id_suburbs: travel_time_default,
+			location_id_uptown: travel_time_default,
+			location_id_south_end: travel_time_default,
+			location_id_waterfront: travel_time_default,
+			location_id_riverside: travel_time_default,
 		},
 	),
 	Location(
-		id=location_id_suburbs,
+		id=location_id_uptown,
 		alias=[
-			"s",
+			"ut",
 		],
-		name="Suburbs",
-		description="This is Suburbs.",
+		name="Uptown",
+		description="This is Uptown.",
 		neighbors={
 			location_id_downtown: travel_time_default,
-			location_id_the_mines: travel_time_default,
+			location_id_financial_district: travel_time_default,
+			location_id_grocer: travel_time_default,
 		},
 	),
 	Location(
-		id=location_id_the_mines,
+		id=location_id_waterfront,
+		alias=[
+			"wf",
+		],
+		name="the Waterfront",
+		description="This is the Waterfront.",
+		neighbors={
+			location_id_downtown: travel_time_default,
+			location_id_financial_district: travel_time_default,
+		},
+	),
+	Location(
+		id=location_id_financial_district,
+		alias=[
+			"fd",
+		],
+		name="the Financial District",
+		description="This is the Financial District.",
+		neighbors={
+			location_id_uptown: travel_time_default,
+			location_id_waterfront: travel_time_default,
+		},
+	),
+	Location(
+		id=location_id_south_end,
+		alias=[
+			"se",
+		],
+		name="South End",
+		description="This is the South End.",
+		neighbors={
+			location_id_downtown: travel_time_default,
+			location_id_outskirts: travel_time_default,
+			location_id_soup_kitchen: travel_time_default,
+		},
+	),
+	Location(
+		id=location_id_riverside,
+		alias=[
+			"rs",
+		],
+		name="the Riverside",
+		description="This is the Riverside.",
+		neighbors={
+			location_id_downtown: travel_time_default,
+			location_id_outskirts: travel_time_default,
+		},
+	),
+	Location(
+		id=location_id_outskirts,
+		alias=[
+			"o",
+		],
+		name="The Outskirts",
+		description="This is the Outskirts.",
+		neighbors={
+			location_id_south_end: travel_time_default,
+			location_id_riverside: travel_time_default,
+			location_id_mines: travel_time_default,
+		},
+	),
+	Location(
+		id=location_id_mines,
 		alias=[
 			"mines",
 			"m"
@@ -77,10 +159,56 @@ location_list = [
 		name="the Mines",
 		description="This is the Mines.",
 		neighbors={
-			location_id_suburbs: travel_time_default,
+			location_id_outskirts: travel_time_default,
+		},
+	),
+	Location(
+		id=location_id_casino,
+		alias=[
+			"l",
+		],
+		name="Casino",
+		description="This is the Casino.",
+		neighbors={
+			location_id_south_end: travel_time_default,
+		},
+	),
+	Location(
+		id=location_id_loan_agency,
+		alias=[
+			"loan",
+			"la"
+		],
+		name="the Loan Agency",
+		description="This is the Loan Agency.",
+		neighbors={
+			location_id_financial_district: travel_time_default,
+		},
+	),
+	Location(
+		id=location_id_grocer,
+		alias=[
+			"g",
+		],
+		name="a Grocer",
+		description="This is a Grocer.",
+		neighbors={
+			location_id_uptown: travel_time_default,
+		},
+	),
+	Location(
+		id=location_id_soup_kitchen,
+		alias=[
+			"sk",
+		],
+		name="a Soup Kitchen",
+		description="This is a Soup Kitchen.",
+		neighbors={
+			location_id_south_end: travel_time_default,
 		},
 	),
 ]
+
 
 # A dictionary mapping every location identifier to their corresponding locations as Location objects.
 id_to_location = {}
@@ -101,13 +229,29 @@ type_food = "food"
 # A list of every item in the game as Item objects.
 item_list = [
 	Item(
+		id = "pickaxe",
+		type = type_general,
+		name = "Pickaxe",
+		description = "It's rusty, but it works.",
+		durability = 50,
+	),
+	Item(
 		id = "apple",
 		type = type_food,
 		name = "Red Apple",
 		description = "Juicy and delicious...",
 		value = 500,
-		vendor = location_id_suburbs,
+		vendor = location_id_grocer,
 		satiation = 10,
+	),
+		Item(
+		id = "gruel",
+		type = type_food,
+		name = "Gruel",
+		description = "Well, it's better than nothing, I guess...",
+		value = 10,
+		vendor = location_id_soup_kitchen,
+		satiation = 5,
 	),
 ]
 

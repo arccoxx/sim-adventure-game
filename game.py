@@ -8,6 +8,7 @@ from pygame.locals import *
 import pygame
 import os
 import json
+import pygame
 
 # Import the rest of our code.
 import utilities
@@ -24,29 +25,6 @@ pygame.init()
 pygame.display.set_caption(config.game_name)
 os.environ['SDL_VIDEO_CENTERED'] = '1'
 
-screen_width = 896
-screen_height = 504
-
-screen = pygame.display.set_mode((screen_width, screen_height))
-
-background_colour = pygame.Color("#808080")
-
-ui_manager = pygame_gui.UIManager((screen_width, screen_height), "assets/ui_theme.json")
-ui_manager.add_font_paths('jost', "assets/font.ttf")
-ui_manager.preload_fonts([{'name': 'jost', 'point_size': 18, 'style': 'bold'},
-                          {'name': 'jost', 'point_size': 18, 'style': 'italic'}])
-
-
-def generate_output(response):
-    return pygame_gui.elements.UITextBox(response, pygame.Rect((25, 25), (845, 380)), manager=ui_manager, object_id="#scene_text")
-
-
-def generate_command_line():
-    player_text_entry = pygame_gui.elements.UITextEntryLine(pygame.Rect(
-        (75, 440), (790, 50)), manager=ui_manager, object_id="#player_input")
-    pygame_gui.elements.UILabel(pygame.Rect(
-        (50, 428), (25, 50)), ">", manager=ui_manager, object_id="#carat")
-    ui_manager.select_focus_element(player_text_entry)
 
 
 clock = pygame.time.Clock()
@@ -61,12 +39,12 @@ player_data = player.Player()
 if player_data.scene is not None:
     if player_data.scene == config.scene_id_newgame:
         response = scenes.Introduction(None)
-        output = generate_output(response)
+        output = utilities.generate_output(response)
         output_text = response
 else:
-    response = "Welcome back, {player_name}. You have {slimes} slime.<br><br>What would you like to do now?".format(
-        player_name=player_data.name, slimes=player_data.slimes)
-    output = generate_output(response)
+    response = "Welcome back, {}. You are still {:,} slimes in debt.<br><br>What would you like to do now?".format(
+        player_data.name, player_data.debt)
+    output = utilities.generate_output(response)
     output_text = response
 
 running = True
@@ -79,9 +57,9 @@ while running:
         if event.type == QUIT:
             running = False
 
-        ui_manager.process_events(event)
+        utilities.ui_manager.process_events(event)
 
-        generate_command_line()
+        utilities.generate_command_line()
 
         if event.type == USEREVENT:
             if event.user_type == "ui_text_entry_finished":
@@ -106,20 +84,20 @@ while running:
                     response += "<br><br>" + \
                         utilities.parse_message(message)
 
-                response += "<br><br>" + ("-" * 200) + "<br>" + output_text
+                response += "<br><br>" + ("-" * 200) + "<br><br>" + output_text
 
                 # Delete the previously rendered text.
                 output.kill()
                 # Output the new response (which contains all the previous inputs and responses).
-                output = generate_output(response)
+                output = utilities.generate_output(response)
                 # Save what we just output as a string for the next loop.
                 output_text = response
 
-    ui_manager.update(time_delta)
+    utilities.ui_manager.update(time_delta)
     # Draw the background.
-    screen.blit(pygame.image.load("assets/background.png"), (0, 0))
+    utilities.screen.blit(pygame.image.load("assets/background.png"), (0, 0))
 
-    ui_manager.draw_ui(screen)
+    utilities.ui_manager.draw_ui(utilities.screen)
 
     pygame.display.flip()  # flip all our drawn stuff onto the scree
 
