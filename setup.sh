@@ -1,4 +1,4 @@
 
-pip install pygui==0.6.0
+pip3 install pygame_gui
 python3 -m pip install -U pygame --user
 
