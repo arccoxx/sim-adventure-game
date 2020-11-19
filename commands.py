@@ -2,8 +2,6 @@
 import random
 import time
 import pygame
-import moviepy
-from moviepy.editor import *
 
 # Import other parts of our code.
 import utilities
@@ -329,6 +327,5 @@ def deposit(cmd):
         response = "You dump {:,} slime into the ATM.".format(amount)
 
         if player_data.debt <= 0:
-            clip = VideoFileClip(filename = 'assets/video.mp4', target_resolution = (504, 896))
-            clip.preview()
+            response += "\nGood job!"
         return response

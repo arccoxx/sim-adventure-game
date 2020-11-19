@@ -3,10 +3,9 @@ import json
 import config
 
 # The object model for the player character.
-
-
 class Player:
-    # These values are default placeholders.
+    # These values are default placeholders. They will be overwritten when the player's data can be retrieved.
+
     # The player's name. Defined at the start of a new game.
     name = ""
 
@@ -22,10 +21,12 @@ class Player:
     # Scenes are scripted sequences the player enter into for key moments in the story where normal commands are disabled.
     scene = None
 
+    # The player's debt.
     debt = config.initial_debt
 
     # Create the player object.
     def __init__(self):
+        # Open up the save file.
         with open('save.json', 'r') as save_file:
             # Turn the JSON object into a Python list containing dictionaries.
             data = json.load(save_file)
@@ -46,15 +47,16 @@ class Player:
 
     # Save the data from this player object to the save file.
     def persist(self):
-        # Reopen the save file to recall what the saved data used to be.
+        # Open up the save file again to store the data as a local dictionary for ease of use.
         with open('save.json', 'r') as save_file:
+            # Turn the JSON object into a Python list containing dictionaries.
             save_data = json.load(save_file)
             # Safely close the file.
             save_file.close()
 
-        # Commit the new changes to the save file.
+        # Update the save file.
         with open('save.json', 'w') as save_file:
-            # Append each
+            # Overwrite the save file with the data from this object.
             save_data['player']['name'] = self.name
             save_data['player']['location'] = self.location
             save_data['player']['slimes'] = self.slimes

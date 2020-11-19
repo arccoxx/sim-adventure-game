@@ -129,28 +129,3 @@ def format_nice_list(names = [], conjunction = "and"):
 		return names[0]
 	
 	return ', '.join(names[0:-1]) + '{comma} {conj} '.format(comma = (',' if list > 2 else ''), conj = conjunction) + names[-1]
-
-pygame.init()
-
-screen_width = 896
-screen_height = 504
-
-screen = pygame.display.set_mode((screen_width, screen_height))
-
-background_colour = pygame.Color("#808080")
-
-ui_manager = pygame_gui.UIManager((screen_width, screen_height), "assets/ui_theme.json")
-ui_manager.add_font_paths('jost', "assets/font.ttf")
-ui_manager.preload_fonts([{'name': 'jost', 'point_size': 18, 'style': 'bold'},
-                          {'name': 'jost', 'point_size': 18, 'style': 'italic'}])
-
-def generate_command_line():
-    player_text_entry = pygame_gui.elements.UITextEntryLine(pygame.Rect(
-        (75, 440), (790, 50)), manager=ui_manager, object_id="#player_input")
-    pygame_gui.elements.UILabel(pygame.Rect(
-        (50, 428), (25, 50)), ">", manager=ui_manager, object_id="#carat")
-    ui_manager.select_focus_element(player_text_entry)
-
-
-def generate_output(response):
-    return pygame_gui.elements.UITextBox(response, pygame.Rect((25, 25), (845, 380)), manager=ui_manager, object_id="#scene_text")

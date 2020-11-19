@@ -1,14 +1,17 @@
-#!/usr/bin/python3
-
-# This is a simple text adventure game made by the SIM Technology Group.
-
 # Import external libraries.
-import pygame_gui
-from pygame.locals import *
-import pygame
+import random
 import os
-import json
 import pygame
+import pygame_gui
+
+from collections import deque
+
+# Import Pygame GUI elements directly for ease of access.
+from pygame_gui import UIManager, PackageResource
+from pygame_gui.elements import UIWindow
+from pygame_gui.elements import UITextEntryLine
+from pygame_gui.elements import UITextBox
+from pygame_gui.windows import UIMessageWindow
 
 # Import the rest of our code.
 import utilities
@@ -17,88 +20,131 @@ import commands
 import player
 import scenes
 
-# Begin interpreting the code.
-print("Loading...")
-
-# Starts the game, and begins the infinite loop of asking for inputs and sending responses.
-pygame.init()
-pygame.display.set_caption(config.game_name)
-os.environ['SDL_VIDEO_CENTERED'] = '1'
-
-
-
-clock = pygame.time.Clock()
-
+# Load the player's save file and retrieve their save data.
 save = utilities.Save()
 
-output = None
-
-# Load the player's save file and retrieve their data.
+# Create a player object using the player's save data.
 player_data = player.Player()
 
-if player_data.scene is not None:
+# We'll use this empty string later to store our response history.
+response_history = ""
+
+# Check to see if the player is in a scripted sequence.
+if player_data.scene is not None: # If they are, give them a response based upon their current scene.
     if player_data.scene == config.scene_id_newgame:
         response = scenes.Introduction(None)
-        output = utilities.generate_output(response)
-        output_text = response
-else:
+        response_history += response
+else: # If they aren't, give them a generic response.
     response = "Welcome back, {}. You are still {:,} slimes in debt.<br><br>What would you like to do now?".format(
         player_data.name, player_data.debt)
-    output = utilities.generate_output(response)
-    output_text = response
+    response_history += response
 
-running = True
+class Window(UIWindow):
+    def __init__(self, rect, ui_manager):
+        super().__init__(rect, ui_manager)
 
-while running:
-    frameTime = clock.tick(60)
-    time_delta = frameTime / 1000.0
+        self.text_block = UITextBox(response, pygame.Rect((25, 25), (845, 380)), self.ui_manager, container = self)
 
-    for event in pygame.event.get():
-        if event.type == QUIT:
-            running = False
+        self.text_entry = UITextEntryLine(pygame.Rect((50, 550), (700, 50)), self.ui_manager, container = self)
 
-        utilities.ui_manager.process_events(event)
+class Options:
+    def __init__(self):
+        self.resolution = (800, 600)
 
-        utilities.generate_command_line()
+class Game:
+    def __init__(self):
+        # Start up Pygame.
+        pygame.init()
 
-        if event.type == USEREVENT:
-            if event.user_type == "ui_text_entry_finished":
-                # Turn the user's input into a string.
-                message = event.text
+        # Title the window our game runs in.
+        pygame.display.set_caption(config.game_name)
+        
+        self.options = Options()
+        
+        # Define the dimensions of our game's window.
+        self.window_surface = pygame.display.set_mode(self.options.resolution)
+        self.window_surface.blit(pygame.image.load("media/images/background.png"), (0, 0))
 
-                # Begin creating the response message. Render all previous inputs and responses before moving on to the current set.
-                response = "<i>> " + message + "</i>"
+        self.background_surface = None
 
-                # Loads the player's save file and retrieve their data.
-                player_data = player.Player()
+        self.ui_manager = UIManager(self.options.resolution, PackageResource(package='media.themes', resource='theme.json'))
 
-                # If the player is currently within a scripted sequence.
-                if player_data.scene is not None:
-                    # If the player has started the game for the first time.
-                    if player_data.scene == config.scene_id_newgame:
-                        response += "<br><br>" + \
-                            scenes.Introduction(message)
+        self.text_block = None
+        self.text_entry = None
 
-                # If the player is the open game.
-                else:
-                    response += "<br><br>" + \
-                        utilities.parse_message(message)
+        self.message_window = None
 
-                response += "<br><br>" + ("-" * 200) + "<br><br>" + output_text
+        self.recreate_ui()
 
-                # Delete the previously rendered text.
-                output.kill()
-                # Output the new response (which contains all the previous inputs and responses).
-                output = utilities.generate_output(response)
-                # Save what we just output as a string for the next loop.
-                output_text = response
+        self.clock = pygame.time.Clock()
+        self.time_delta_stack = deque([])
+        self.running = True
 
-    utilities.ui_manager.update(time_delta)
-    # Draw the background.
-    utilities.screen.blit(pygame.image.load("assets/background.png"), (0, 0))
+    def recreate_ui(self):
+        self.ui_manager.set_window_resolution(self.options.resolution)
+        self.ui_manager.clear_and_reset()
 
-    utilities.ui_manager.draw_ui(utilities.screen)
+        self.background_surface = pygame.Surface(self.options.resolution)
+        self.background_surface.fill(self.ui_manager.get_theme().get_colour('dark_bg'))
+        self.background_surface.blit(pygame.image.load("media/images/background.png"), (0, 0))
 
-    pygame.display.flip()  # flip all our drawn stuff onto the scree
+        self.text_entry = UITextEntryLine(pygame.Rect((50, 550), (700, 50)), self.ui_manager, object_id = "#text_entry")
+        self.text_block = UITextBox(response, pygame.Rect((50, 25), (700, 500)), self.ui_manager, object_id = "#text_block")
 
-pygame.quit()  # exited game loop so quit pygame
+
+    def process_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.running = False
+
+            self.ui_manager.process_events(event)            
+
+            if event.type == pygame.USEREVENT:
+                if (event.user_type == pygame_gui.UI_TEXT_ENTRY_FINISHED and event.ui_object_id == '#text_entry'):
+                    # Turn the user's input into a string.
+                    message = event.text
+
+                    # Begin the response message. Start with repeating the user's input.
+                    response = "<b><i>> {message}</i></b>".format(message = message)
+
+                    # Create a player object using the player's save data.
+                    player_data = player.Player()
+
+                    # Check to see if the player is in a scripted sequence.
+                    if player_data.scene is not None: # If they are...
+                        if player_data.scene == config.scene_id_newgame: # If the player has started the game for the first time.
+                            response += ("<br>" * 4) + scenes.Introduction(message)
+                    else: # If they aren't...
+                        response += ("<br>" * 4) + utilities.parse_message(message)
+
+                    # End the response with some decoration. ^_^
+                    response += ("<br>" * 4) + ("-" * 20) + ("<br>" * 4)
+
+                    # Add this response to our response history, and then send the entire history to be rendered.
+                    global response_history
+                    response += response_history
+                    response_history = response
+
+                    # Render the response.
+                    self.text_block = UITextBox(response, pygame.Rect((50, 25), (700, 500)), self.ui_manager, object_id = "#text_block")
+
+    def run(self):
+        while self.running:
+            time_delta = self.clock.tick() / 1000
+            
+            # Check for inputs from the player.
+            self.process_events()
+
+            # Respond to inputs.
+            self.ui_manager.update(time_delta)
+
+            # Draw the graphics.
+            self.window_surface.blit(self.background_surface, (0, 0))
+            self.ui_manager.draw_ui(self.window_surface)
+
+            pygame.display.update()
+
+# Start the game.
+if __name__ == '__main__':
+    app = Game()
+    app.run()

@@ -1,37 +1,28 @@
-# Import external libraries.
-import asyncio
-import time
-import math
-import heapq
-import random
-from copy import deepcopy
-
 # Import other parts of our code.
 import config
 
 # The object model for locations on the map.
 class Location:
-        # The unique, flattened identifier for this location. All lowercase, no spaces.
-        id = ""
+    # These values are default placeholders.
 
-        # Acceptable alternative names for this place. All lowercase, no spaces.
-        alias = []
+    # The unique identifier for this location. All lowercase, no spaces.
+    id = ""
 
-        # The nice, proper name for this place. May contain uppercase letters, and spaces.
-        name = ""
+    # Acceptable alternative names for this place. All lowercase, no spaces.
+    alias = []
 
-        # The description provided when looking at the location.
-        description = ""
+    # The nice, proper name for this place. May contain uppercase letters, and spaces.
+    name = ""
 
-        # A dictonary that defines the travel time between adjacent locations. {location_id: int}
-        neighbors = None
+    # The description provided when looking while in the location.
+    description = ""
 
-        vendors = []
+    # A list of all locations the player can move to from this one.
+    neighbors = None
 
-        def __init__(self, id = "", alias = [], name = "", description = "", neighbors = None, vendors = []):
-            self.id = id
-            self.alias = alias
-            self.name = name
-            self.description = description
-            self.neighbors = neighbors
-            self.vendors = vendors
+    def __init__(self, id = "", alias = [], name = "", description = "", neighbors = None, vendors = []):
+        self.id = id
+        self.alias = alias
+        self.name = name
+        self.description = description
+        self.neighbors = neighbors

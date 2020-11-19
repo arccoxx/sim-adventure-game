@@ -1,0 +1,28 @@
+{
+    "defaults":
+    {
+        "colours":
+        {
+            "dark_bg": "#000000",
+            "normal_text": "#FFFFFF",
+            "normal_border": "#00ff00"
+        }
+    },
+
+    "text_entry_line":
+    {
+        "colours":
+        {
+            "selected_bg": "#000000",
+            "normal_text": "#FFFFFF",
+            "selected_text": "#D3D3D3"
+        },
+        "misc":
+        {
+            "shape": "rounded_rectangle",
+            "shape_corner_radius": "10",
+            "border_width": "1",
+            "padding": "2,2"
+        }
+    }
+}

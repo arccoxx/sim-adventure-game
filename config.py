@@ -3,7 +3,7 @@ from map import Location
 from item import Item
 
 game_name = "Untitled Text Adventure Game"
-game_version = "0.2"
+game_version = "0.3"
 
 # Commands.
 command_help = 'help'
@@ -110,6 +110,7 @@ location_list = [
 		neighbors={
 			location_id_uptown: travel_time_default,
 			location_id_waterfront: travel_time_default,
+			location_id_loan_agency:travel_time_default,
 		},
 	),
 	Location(
@@ -123,6 +124,7 @@ location_list = [
 			location_id_downtown: travel_time_default,
 			location_id_outskirts: travel_time_default,
 			location_id_soup_kitchen: travel_time_default,
+			location_id_casino:travel_time_default,
 		},
 	),
 	Location(

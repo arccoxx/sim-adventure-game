@@ -1,29 +1,34 @@
+# Import external libraries.
 import json
+import config
 import utilities
 
+# The object model for locations on the map.
 class Item:
-	# The unique, flattened identifier for this item. All lowercase, no spaces.
+	# These values are default placeholders.
+
+	# The unique identifier for this item. All lowercase, no spaces.
 	id = ""
 
-	# The type of item it is, wether it's a general purpose item, a piece of food, or something else.
+	# The type of item it is; Whether it's a general purpose item, a piece of food, or something else.
 	type = ""
 
-	# The name of the item.
+	# The nice, proper name for this place. May contain uppercase letters, and spaces.
 	name = ""
 
-	# The item's description.
+	# The description provided when inspecting it. TODO: Add inspecting.
 	description = ""
 	
-	# The price of this item if sold at a shop. 
+	# The price of this item if it is sold at a vendor. 
 	value = None
 
-	# The shop this item is sold at.
+	# The vendor this item is sold at.
 	vendor = None
 
-	# The amount the player's belly fills up if this item is eaten.
+	# The amount hunger restored if this item is eaten.
 	satiation = None
 
-	# The amount of times the item can be used.
+	# The amount of times the item can be used before breaking.
 	durability = None
 
 	def __init__(
