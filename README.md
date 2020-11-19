@@ -1,5 +1,6 @@
-# sim-adventure-game
-A short text adventure game created by the Interrelated Technology Group from SIM.
+# A Text Adventure brought to you by SIM
+A short text adventure game created by the Interrelated Technology Group from SIM. Please read on for easy installation instructions.
+Have fun!
 
 To run, you will need:
   - Python
